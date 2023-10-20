@@ -3,7 +3,16 @@ name: Testing stuff
 on:
   push:
     branches:
-      - feature-2
+      - master
+      # note that your "main" branch might be called main instead of master
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize]
+
+# on:
+#   push:
+#     branches:
+#       - feature-2
 
 jobs:
   a_test_job:
@@ -11,11 +20,18 @@ jobs:
     steps:
       - name: Failing step
         id: demo
-        run: echo "222"
+        run: exit 1
+      - name: github
+        if: ${{ failure()}}
+        env:
+          GITHUB: ${{toJson(github)}}
+        run: echo '${{ env.GITHUB }}'
       - name: commit
         if: ${{ failure()}}
-        run: echo ${{ github.event.repository.homepage }}
-      - name: github
+        env:
+          GITHUB: ${{github.event.pull_request._links.html}}
+        run: echo '${{ env.GITHUB }}/commits/${{github.event.after}}'
+      - name: github 2
         if: ${{ failure()}}
         run: |
           echo '${{ github.event.head_commit.url}} by ${{ github.event.head_commit.committer.username}} broke the build :('
