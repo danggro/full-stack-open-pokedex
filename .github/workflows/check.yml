@@ -3,25 +3,29 @@ name: Testing stuff
 on:
   push:
     branches:
-      - master
+      - feature-2
 
 jobs:
   a_test_job:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
-      - name: github context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-      - name: commits
-        env:
-          COMMITS: ${{ toJson(github.event.commits) }}
-        run: echo "$COMMITS"
-      - name: commit messages
-        env:
-          COMMIT_MESSAGES: ${{ toJson(join(github.event.commits.*.message, ', ')) }}
-        if: ${{!contains(env.COMMIT_MESSAGES, '#skip')}}
+      - name: Failing step
+        id: demo
+        run: echo "222"
+      - name: commit
+        if: ${{ failure()}}
+        run: echo ${{ github.event.repository.homepage }}
+      - name: github
+        if: ${{ failure()}}
         run: |
-          echo ${{env.COMMIT_MESSAGES}}
-          echo "$COMMIT_MESSAGES"
+          echo '${{ github.event.head_commit.url}} by ${{ github.event.head_commit.committer.username}} broke the build :('
+
+  job_2:
+    needs: [a_test_job]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: check
+        run: echo "sda"
+      - name: check 2
+        if: ${{success()}}
+        run: echo "success"
